@@ -1,0 +1,74 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+temperature <- c(17, 16, 17, 16, 16)
+rain <- c(17, 69, 74, 48, 7)
+cloud <- c(10, 20, 30, 40, 50)
+
+```
+
+```{r}
+days_of_week <- c("Thursday", "Friday", "Saturday", "Sunday", "Monday")
+names(temperature) <- days_of_week
+names(rain) <- days_of_week
+names(cloud) <- days_of_week
+temperature
+rain
+cloud
+```
+
+```{r}
+average_temp <- mean(temperature)
+average_temp
+temperature[temperature > average_temp]
+average_rain <- mean(rain)
+average_rain
+temperature[rain <= average_rain]
+cloud[3:4]
+```
+
+```{r}
+test_results <- c(6, 7, 9, 7, 9, 3, 9, 7, 3, 8, 10, 5, 5, 9, 7, 5, 9, 8, 9, 5)
+
+length(test_results)
+mean(test_results)
+max(test_results)
+min(test_results)
+table(test_results)
+paste(test_results/10*100,"%", sep = "")
+greater_than_8 <- test_results >=8
+length(test_results[greater_than_8])
+```
+
+```{r}
+temp_14_day <- c(16, 17, 16, 16, 17, 17, 16, 17, 17, 17, 18, 18, 19, 18)
+
+forecast <- matrix(data = temp_14_day, nrow = 2, ncol = 7, byrow=TRUE)
+colnames(forecast) <- c("Thursday", "Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday")
+rownames(forecast) <- c("Week 1", "Week 2")
+forecast
+rowSums(forecast)/ncol(forecast)
+colSums(forecast)/nrow(forecast)
+```
+
+```{r}
+forecast[2, 3]
+forecast[2, ]
+forecast[, 7]
+```
+
+```{r}
+(forecast * 1.8) + 32
+```
+
+```{r}
+days_of_week
+days_of_week_ordered <- c("Monday", "Thursday", "Friday", "Saturday", "Sunday")
+factor(days_of_week, ordered(days_of_week_ordered))
+
+
+```
+

@@ -54,6 +54,6 @@ xxxxxxxxxxxxxxx
 EXTENSION
 
 ```{r}
-library(tidyquant)
+install.packages(tidyquant)
 ```
 

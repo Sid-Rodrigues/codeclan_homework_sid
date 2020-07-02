@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+install.packages('devtools')
+devtools::install_github('codeclan/CodeClanData')
+library(CodeClanData)
+```
+
+1.1 BEER
+
+```{r}
+beer
+```
+
+```{r}
+str(beer)
+```
+
+```{r}
+mean(beer$percent)
+mean(as.integer(beer$calories))
+mean(beer$carbohydrates)
+```
+
+```{r}
+max(beer$percent)
+max(as.integer(beer$calories))
+max(beer$carbohydrates)
+min(beer$percent)
+min(as.integer(beer$calories))
+min(beer$carbohydrates)
+
+```
+
+```{r}
+subset(beer, percent <= max(beer$percent))
+subset(beer, calories == max(as.integer(beer$calories)))
+subset(beer, carbohydrates == max(beer$carbohydrates))
+```
+
+```{r}
+beer[rev(order(beer$percent)), ]
+```
+
+INTERESTING FACTS:
+1. High perentage alchohol beers have high calories!
+2. Sierra Nevada Bigfoot has the highest calories and carbs!
+
+
+1.2 TEMPERATURES
+
+```{r}
+str(temp)
+length(temp)
+```
+
+```{r}
+colMeans(temp)
+```
+
+
+```{r}
+#Highest Monthly Temperature
+apply(temp, 2, max)
+apply(temp, 2, min)
+```
+
+```{r}
+max(temp)
+min(temp)
+rownames(temp) <- c(seq(1910, 2015, by = 1))
+which.max(temp[ , "AUG"])
+temp[which.max(temp[ , "AUG"]), ]
+which.min(temp[ , "FEB"])
+
+```
+
+INTERESTING FACTS
+1. Highest recoderd temperature was 20.7 degrees and lowest recorded temperature was 0.2 degrees
+2. Year 1947 recorded both highest and lowest temperature.
