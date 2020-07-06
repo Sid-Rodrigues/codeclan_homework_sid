@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+paste("+", "-", sep="")
+paste("letters")
+```
+
+
+```{r}
+
+make_price <- function(x){
+  paste("£", x, sep = "")
+  
+}
+make_price(5)
+```
+
+```{r}
+animals <- c("dog", "zebra", "tiger", "deer", "camel")
+make_ordered_list <- function(my_list){
+  my_list_sorted <- sort(my_list)
+  my_list_joined <- paste(my_list_sorted, collapse = ", ")
+  paste("Ordered list:", my_list_joined)
+  
+}
+make_ordered_list(animals)
+```
+
+
+
+```{r}
+
+make_fancy_price <- function(x){
+  pounds <- as.integer(x)
+  pence <- x%%1
+  paste(pounds, "pounds", pence, "pence")
+}
+make_fancy_price(5)
+```
+

@@ -1,0 +1,17 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+source("01_multiply_n.R")
+source("02_add_two.R")
+```
+
+```{r}
+item <- multiply_by_n(5,2)
+add_two(item)
+
+```
+
+

@@ -1,0 +1,156 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+PSEUDO-CODE
+
+```{r}
+if(expression){
+  do something
+  do something else
+}
+```
+
+Expression Boolean expresion - result is TRUE or FALSE
+
+```{r}
+if(10 < 15){
+  print("Yup 10 is less than 15")
+}
+```
+
+```{r}
+if(5 %in% c(1,4,8)){
+  print("It is True")
+}
+```
+
+```{r}
+#x <- 4
+if(x %% 2 == 0){
+  print("Yes")
+}
+```
+
+```{r}
+x <- 5
+if(x %% 2 == 0){
+  print("Yes")
+} else{
+  print("No")
+}
+```
+
+```{r}
+z <- ifelse(1:10 <=5, "less", "greater")
+z
+```
+
+
+```{r}
+animals <- c("cat", "Dog", "Monkey")
+ifelse(animals == "Dog", "Dog", "Not a Dog")
+```
+
+```{r}
+x <- 1:10
+ifelse(x %% 3 == 0, "Multiple of 3", "Not a multiple of 3")
+
+```
+
+```{r}
+x <- c("Sun", "Mon", "Tue")
+
+ifelse(x == "Sun", "Sunny", x)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+x <- 1:20
+case_when(
+  x %% 2 == 0 ~ "Even",
+  x %% 3 == 0 ~ "Divisible by 3",
+  x %% 5 == 0 ~ "Divisible by 5",
+  TRUE ~ "Other number"
+)
+```
+
+
+```{r}
+x <- 1:100
+case_when(
+  x %% 3 == 0 & x %% 5 == 0 ~ "FizzBuzz",
+  x %% 3 == 0 ~ "Fizz",
+  x %% 5 == 0 ~ "Buzz",
+  
+  TRUE ~ as.character(x)
+  
+)
+```
+
+
+```{r}
+ x <- as.factor( c("green", "blue", "blue", "red", "purple"))
+
+ifelse(x == "green", "blue", x)
+```
+
+
+```{r}
+recode(x, "green" = "blue")
+```
+
+
+```{r}
+name <- c("John", "Clara", "Smith")
+sex <- c(1, 2, 1)
+age <- c(30, 32, 54)
+# create a new dataframe
+student_df <- data.frame(name, recode(sex, "1" = "M", "2" = "F"), age)
+student_df
+```
+
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+for(day in weekdays){
+  phrase <- paste("The day is", day)
+  print(phrase)
+}
+```
+
+
+```{r}
+numbers <- 1:5
+for(num in numbers){
+  phrase <- paste("print", num)
+  print(phrase)
+}
+```
+
+```{r}
+current_value <- 1
+stop_value <- 10
+while(current_value < stop_value){
+  current_value <- current_value + 1
+  print(current_value)
+}
+```
+
+```{r}
+matrix <- matrix(data = 1:10, nrow = 5, ncol = 6)
+sum_cols_matrix = apply(X = matrix, MARGIN = 2, FUN = sum)
+matrix
+sum_cols_matrix
+```
+
+
+

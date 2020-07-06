@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+3. Extension Puzzles
+3.1
+Write code that prints a multiplication table for numbers up to 12. i.e. there will be 12 rows and 12 columns, and each element should be the row number multiplied by the column number.
+
+
+```{r}
+
+my_vector <- c(1:12)
+for(i in 1:length(my_vector)){
+  print(my_vector * i)
+}
+
+```
+
+3.2
+Write a function that takes a vector, and creates a text art histogram, like the one below.
+
+```{r}
+my_vector <- c(3,5,2)
+
+text_art_histogram <- function(x){
+  for(i in 1 : length(x)){
+    #print(x[i])
+    #print(length(x))
+    for(j in 1:x[i]){
+      cat("*")
+    }
+    cat("\n")
+  }
+}
+  
+  
+text_art_histogram(my_vector)
+
+```
+
+
