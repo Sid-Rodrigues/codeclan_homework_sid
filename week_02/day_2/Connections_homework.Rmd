@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(RPostgreSQL)
+```
+
+1.1 Local PostgreSQL connections
+
+# source in our credential file
+
+```{r}
+home_location <- Sys.getenv("HOME")
+credentials_location <- paste0(home_location, "/credentials.R")
+source(credentials_location)
+```
+
+# create connection to the local wrestling database from R
+# passing argument max.con = 2
+
+```{r}
+my_db_connection <- dbConnect(drv = PostgreSQL(max.con = 2), user = postgresql_username, password = postgresql_password, dbname = 'wrestling', host = 'localhost')
+```
+
+# Using R connection, write and execute a SQL query to return all the wrestlers in the wrestlers  table
+
+```{r}
+
+wrestlers <- dbGetQuery(conn = my_db_connection, statement = "SELECT name FROM wrestlers")
+wrestlers
+```
+
+#Explore the columns stored in the table. State which data type you think each column stores.
+
+# id INT
+# born VARCHAR
+# name VARCHAR
+# gender VARCHAR
+# win_percent REAL
+# total_matches INT
+
+```{r}
+dbListTables(conn = my_db_connection)
+dbListFields(conn = my_db_connection, name = "wrestlers")
+
+```
+
+```{r}
+dbDisconnect(conn = my_db_connection)
+```
+
+
+
+xxxxxxxxxxxx        xxxxxxxxxxxxxx        xxxxxxxxxxxx
+1.2 Remote PostgreSQL connections
+
+# Store the credentials above in appropriately named variables in your credentials.R file in your home directory.
+#Use your credentials to establish a connection from R to the remote database.
+
+```{r}
+home_location <- Sys.getenv("HOME")
+credentials_location <- paste0(home_location, "/credentials.R")
+source(credentials_location)
+```
+
+
+```{r}
+db_connect <- dbConnect(drv = PostgreSQL(max.con = 1), user = remote_omni_postgresql_username, password = remote_omni_postgresql_password, dbname='mvhbdgdk', host='34.245.37.126')
+```
+
+#Using this R connection, write and execute a query to return all the wrestlers from the wrestlers table
+
+
+```{r}
+wrestlers1 <- dbGetQuery(conn = my_db_connection, statement = "SELECT * FROM wrestlers")
+wrestlers1
+```
+
+
+
+```{r}
+dbDisconnect(conn = my_db_connection)
+```
+
