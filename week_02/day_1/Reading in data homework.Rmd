@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+HOMEWORK DAY 1
+1. Read in the state_income_data.csv file using the appropriate function.
+
+```{r}
+library(readr)
+```
+
+
+```{r}
+state_income_data <- read_csv("data/state_income_data.csv")
+state_income_data
+```
+
+
+2. How do you specify your own column names when using read_csv()?
+
+Answer: By using specifying a character vector to argument col_names.
+
+3. Read in the cars.csv file and use the col_types() function to ensure you load in:
+X1 as character
+mpg, cyl, disp, hp as double
+vs as logical
+
+```{r}
+#raw_cars <- read_csv("data/cars.csv")
+raw_cars2 <- read_csv("data/cars.csv", col_types = cols(X1 = col_character(), vs = col_logical()))
+raw_cars2
+```
+
+
+4. Read in the scotland.txt file using the appropriate function.
+
+```{r}
+#raw_scot <- read_tsv("data/scotland.txt")
+#raw_scot
+raw_scot <- read_delim("data/scotland.txt", delim = ";")
+raw_scot
+```
+
+
+5. How do you read text into a one element character vector?
+
+Answer: Using read_file() 
+
+6. Read in the steam-200k-sample.csv file. Fix any problems you may encounter.
+
+```{r}
+raw_steam_sample <- read.csv("data/steam-200k-sample.csv", skip = 2)
+raw_steam_sample
+```
+
+
+7. Read in the historic_eu_payments.tsv file.
+
+```{r}
+raw_hist <- read_tsv("data/historic_eu_payments.tsv")
+raw_hist
+```
+
+
+8. How do you read lines of text into a multi-element text vector?
+
+Answer: Using read_lines("file_name.txt")
+
+
+9. Read in the JSON file from the following url: http://makemeanalyst.com/wp-content/uploads/2017/06/sample_json.txt
+
+```{r}
+library(jsonlite)
+library(readr)
+```
+
+```{r}
+raw_file <- read_file("http://makemeanalyst.com/wp-content/uploads/2017/06/sample_json.txt")
+prettify(raw_file)
+file <- parse_json(raw_file)
+file
+```
+

@@ -109,7 +109,7 @@ for(item in my_list){
      print(item)
   }
 }
-
+length(item[2])
 ```
 
 2.4.2
@@ -120,8 +120,10 @@ Once again write a loop that prints out character elements. This time if the ele
 for(item in my_list){
   if(is.character(item)){
     if(length(item) > 1){
-      print(item)
+      print(paste(item, collapse = " "))
       
+    }else {
+      print(item)
     }
   }
 }
