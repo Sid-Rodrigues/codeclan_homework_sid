@@ -1,0 +1,214 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#1. PREPARATION
+Investigate table relationships: look for primary keys and foreign keys, see if you can spot any one-to-one, one-to-many or many-to-many relationships.
+
+Answer:
+Committees Table -> committee_id is Primary Key
+Employees_Committee Table -> committee_id is Foreign Key
+
+
+```{r}
+library(RPostgreSQL)
+
+home_location <- Sys.getenv("HOME")
+credentials_location <- paste0(home_location,"/credentials.R")
+source(credentials_location)
+
+db_connect <- dbConnect(drv = PostgreSQL(), user = postgresql_username, password = postgresql_password, dbname = "omni_employees", host = "localhost")
+
+rm(postgresql_username, postgresql_password)
+```
+
+2. MVP
+
+1. Find all the employees who work in the ‘Human Resources’ department.
+
+```{sql connection=db_connect}
+SELECT *
+FROM employees
+WHERE department = 'Human Resources'
+```
+
+2. Get the first name, last name, and country of the employees who work in the ‘Legal’ department
+
+```{sql connection=db_connect}
+SELECT 
+  id,
+  first_name,
+  last_name,
+  country
+FROM employees
+WHERE department = 'Legal'
+```
+
+
+3. Count the number of employees based in Portugal.
+
+```{sql connection=db_connect}
+SELECT 
+  COUNT(*) AS portugal_employees
+FROM employees
+WHERE country = 'Portugal'
+```
+
+
+4. Count the number of employees based in either Portugal or Spain.
+
+```{sql connection=db_connect}
+SELECT 
+  COUNT(*) AS emp_Portugal_Spain
+FROM employees
+WHERE country IN('Portugal', 'Spain')
+```
+
+
+5. Count the number of pay_details records lacking a local_account_no
+
+```{sql connection=db_connect}
+SELECT *
+FROM pay_details
+ORDER BY local_account_no ASC NULLS FIRST
+
+```
+
+```{sql connection=db_connect}
+SELECT 
+COUNT(id) AS no_account_no
+FROM pay_details
+WHERE local_account_no IS NULL
+```
+
+
+6. Are there any pay_details record lacking both a local_account_no and iban number?
+
+```{sql connection=db_connect}
+SELECT 
+COUNT(id) AS no_account_no
+FROM pay_details
+WHERE local_account_no IS NULL AND iban IS NULL
+```
+
+7. Get a list of employees first names and last names ordered alphabetically by their last name (put any nulls last).
+
+```{sql connection=db_connect}
+SELECT 
+  first_name,
+  last_name
+FROM employees
+ORDER BY last_name ASC NULLS LAST
+```
+
+8. Get a list of employees first names, last names and countries, ordered alphabetically first by their country and second by their last name (put any nulls last).
+
+```{sql connection=db_connect}
+SELECT 
+  first_name,
+  last_name,
+  country
+FROM employees
+ORDER BY country ASC, last_name ASC NULLS LAST
+```
+
+
+9. Find the top ten highest paid employees in the corporation.
+
+```{sql connection=db_connect}
+SELECT * FROM employees
+WHERE salary IS NOT NULL
+ORDER BY salary DESC NULLS FIRST 
+LIMIT 10
+```
+
+10. Find the first name, last name and salary of the lowest paid of the employees in Hungary
+
+```{sql connection=db_connect}
+SELECT *
+FROM employees
+WHERE country = 'Hungary'
+
+```
+
+
+```{sql connection=db_connect}
+SELECT 
+  first_name,
+  last_name,
+  salary
+FROM employees
+WHERE salary IS NOT NULL AND country = 'Hungary'
+ORDER BY salary DESC
+
+```
+
+
+11. How many employees have a first name beginning with ‘F’?
+
+```{sql connection=db_connect}
+SELECT 
+COUNT(id) AS First_name_begining_with_F
+FROM employees
+WHERE first_name LIKE 'F%'
+```
+
+12. Find all the details of any employees with a ‘yahoo’ e-mail address?
+
+```{sql connection=db_connect}
+SELECT *
+FROM employees
+WHERE email LIKE '%yahoo%'
+```
+
+
+13. Count the number of pension enrolled employees not based in either France or Germany.
+
+```{sql connection=db_connect}
+SELECT 
+COUNT(id) AS pension_enrolled_employees
+FROM employees
+WHERE pension_enrol IS TRUE AND country NOT IN('France', 'Germany')
+
+```
+
+
+14. Breakdown the numbers of employees enrolled, not enrolled and whose enrollment status is unknown in the corporation pension scheme.
+
+```{sql connection=db_connect}
+SELECT 
+DISTINCT(pension_enrol),
+COUNT(*)
+FROM employees
+--WHERE country = 'United States'
+GROUP BY pension_enrol
+```
+
+15. What is the maximum salary among employees in the Engineering department who work 1.0 full-time equivalent hours?
+
+```{sql connection=db_connect}
+SELECT
+MAX(salary) AS max_sal_engineering
+FROM employees
+WHERE department = 'Engineering' AND fte_hours = 1.0
+
+```
+
+16. Obtain a count by department of the employees who started work with the corporation in 2003.
+
+```{sql connection=db_connect}
+SELECT
+department,
+COUNT(id) AS total_people_started_in_2003
+FROM employees
+WHERE start_date BETWEEN '2003-01-01' AND '2003-12-31'
+GROUP BY department
+```
+
+
+
+
+```{r}
+dbDisconnect(db_connect)
+```
+
