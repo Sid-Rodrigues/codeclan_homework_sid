@@ -1,0 +1,170 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(RPostgreSQL)
+home_location <- Sys.getenv("HOME")
+credentials_location <- paste0(home_location,"/credentials.R")
+source(credentials_location)
+
+db_connect <- dbConnect(drv = PostgreSQL(), user = postgresql_username, password = postgresql_password, dbname = "acme_employees", host = "localhost")
+
+rm(postgresql_username, postgresql_password)
+```
+
+```{sql connection=db_connect}
+select * FROM employees
+```
+
+
+```{sql connection=db_connect}
+dbListFields(conn = db_connect, name = 'employees')
+```
+
+1. Create a new data.frame containing the details of all employees held in the database
+
+```{r}
+data <- dbGetQuery(conn = db_connect, statement = "SELECT * FROM employees")
+class(data)
+#head(data)
+nrow(data)
+
+```
+
+2. Retrieve the records for all employees again, but this time add a field full_name containing the first_name and last_name of each employee separated by a space.
+
+
+```{sql connection=db_connect}
+SELECT *,
+  CONCAT(first_name, ' ', last_name) AS full_name
+FROM employees
+WHERE first_name IS NOT NULL AND last_name IS NOT NULL
+```
+
+
+3. Retrieve the details of all employees again, but this time listing their team name (as team_name), rather than their team_id.
+
+```{sql connection=db_connect}
+SELECT * from teams
+```
+
+```{sql connection=db_connect}
+SELECT
+  t.name AS team_name,
+  * 
+FROM employees AS e
+INNER JOIN teams AS t
+ON e.team_id = t.id
+WHERE e.team_id = (REPLACE t.name FROM teams WHERE t.id = e.team_id)
+--WHERE e.team_id = CAST((SELECT t.name AS team_name FROM teams WHERE t.id = e.team_id) AS VARCHAR)
+
+```
+
+```{sql connection=db_connect}
+SELECT t.name, e.* 
+FROM employees AS e
+INNER JOIN teams AS t
+ON e.team_id = t.id
+```
+
+
+4. Do a breakdown of the number of employees per team (here we want two columns: team_name and num_employees). Order the table in decreasing number of employees. Include all teams, even if they have no employees.
+
+```{sql connection=db_connect}
+SELECT 
+  t.name AS team_name,
+  COUNT(e.id) AS num_employees
+FROM employees AS e
+LEFT JOIN teams AS t
+ON e.team_id = t.id
+GROUP BY t.name
+ORDER BY num_employees DESC NULLS LAST
+```
+
+5. AcmeCorp management want to send an email survey to each of their employees. However, they are worried that some of the employees may not receive the email either because their email addresses may be invalid (in that they don’t contain an ‘@’ symbol), or they may not have a stored email address at all. Can you find all these employees?
+
+
+```{sql connection=db_connect}
+SELECT * 
+FROM employees
+WHERE email IS NULL OR email NOT LIKE '%@%'
+```
+
+
+E X T E N S I O N S
+
+2.1 Harder SQL queries
+
+1. Which of the employees provided the most recent feedback? What was the date of this feedback?
+
+```{sql connection=db_connect}
+SELECT 
+  e.first_name,
+  e.last_name,
+  f.date AS feedback_date
+FROM employees AS e
+LEFT JOIN feedbacks AS f
+ON e.id = f.employee_id
+ORDER BY f.date DESC NULLS LAST
+LIMIT 1
+```
+
+2. which team has the highest number of employees with single initial first_names)`?
+
+```{sql connection=db_connect}
+SELECT *
+FROM employees
+WHERE LENGTH(first_name > 1) 
+```
+
+```{sql connection=db_connect}
+SELECT 
+  e.first_name,
+  e.last_name,
+  t.name AS team_name
+FROM employees AS e
+INNER JOIN teams AS t
+ON e.team_id = t.id
+WHERE LENGTH(e.first_name) = 1
+--ORDER BY LENGTH(e.first_name) ASC
+```
+
+
+2.2 Sentiment Analysis
+
+```{sql connection=db_connect}
+Msg <- gsub(',', feedbacks.message)
+```
+
+
+```{r}
+data <- dbGetQuery(conn = db_connect, statement = "SELECT * FROM feedbacks")
+class(data)
+#head(data)
+nrow(data)
+data$message
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#dbDisconnect(db_connect)
+```
+
+
