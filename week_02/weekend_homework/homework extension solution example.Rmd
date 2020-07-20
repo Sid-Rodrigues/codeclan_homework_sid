@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+clean_message <- function(message){
+  message <- tolower(message)
+  # This is messy. You'll see better ways to do this later in the course
+  # We can also do something like the following, using a regular expression (regex)
+  # Regexes are also covered later!
+  # message <- gsub(message, pattern = "[[:punct:]]", replacement = " ")
+  message <- gsub(message, pattern = ",", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = ".", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = ":", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = ";", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = "!", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = "'", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = '"', replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = "(", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = ")", replacement = "", fixed = TRUE)
+  message <- gsub(message, pattern = "-", replacement = " ", fixed = TRUE)
+  message <- gsub(message, pattern = "/", replacement = " ", fixed = TRUE)
+  message <- gsub(message, pattern = "  ", replacement = " ", fixed = TRUE)
+  message <- gsub(message, pattern = "   ", replacement = " ", fixed = TRUE)
+  return(message)
+}
+```
+```{r}
+score_message <- function(message, positive_words, negative_words){
+  message_words <- unlist(strsplit(message, split = " ", fixed = TRUE))
+  message_score <- 0
+  for (word in positive_words){
+    message_score <- message_score + sum(message_words == word)
+  }
+  for (word in negative_words){
+    message_score <- message_score - sum(message_words == word)
+  }
+  return(message_score)
+}
+positive_words <- c("great", "good", "happy", "content", "fulfilled", "fulfilled", "positive", "positives", "cheerful", "nice", "ambition", "ambitions", "ambitious", "friendly", "progress", "joy", "fast", "achieve", "achieving", "achievements", "best", "better",  "unlimited", "pros", "competitive", "opportunity", "advancement", "friendly", "smart", "interesting", "challenging", "grow", "caring", "balance", "helpful")
+negative_words <- c("worse", "worsening", "worst", "slow", "sluggish", "impatient", "unfulfilled", "unfulfilling", "negative", "bad", "limited", "limit", "limitations", "cons", "frustrated", "frustrating", "frustration", "dull", "boring", "politics", "political", "ignore", "ignored", "ignoring", "sad", "depressed", "depressing", "nasty", "stress", "stresses", "stressed", "horrid", "horrible", "terrible", "deadline", "deadlines", "uncaring", "remote")
+```
+```{r}
+message <- "What a great place to work! Really love the chips in the canteen!"
+cleaned_message <- clean_message(message)
+cleaned_message
+```
+```{r}
+message_words <- unlist(strsplit(cleaned_message, split = " ", fixed = TRUE))
+```
+```{r}
+message_score <- 0
+for (word in positive_words){
+    message_score <- message_score + sum(message_words == word)
+  }
+```
+```{r}
+sum(message_words == "great")
+```
