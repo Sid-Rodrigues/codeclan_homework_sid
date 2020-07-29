@@ -1,0 +1,142 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+# 3.1 Comparison
+# Create a suitable plot for the following three datasets:
+late_deliveries
+recovery_times
+fitness_levels
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(ggplot2)
+```
+
+```{r}
+head(late_deliveries)
+dim(late_deliveries)
+```
+
+
+```{r}
+late_deliveries_year <- late_deliveries %>%
+  mutate(year = as.numeric(substring(date, 1, 4)),   # Cceate new column 'year' by extracting year from date
+         month = months(date))   # create a new column month 
+
+ggplot(late_deliveries_year) +
+  aes(x = factor(month, levels = month.name), y = late_deliveries, colour = month) +  # maintaining level order of months
+  geom_point() + # replace discrete scale with abbreviated values
+  scale_x_discrete(limit = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+                     labels = c("J","F","M", "A", "M", "J", "J", "A", "S", "O", "N", "D")) +
+  labs(
+    x = "\nMonths",
+    y = "Number of Late Deliveries",
+    title = "Late Deliveries by Month",
+    colour = "Months"
+  ) + 
+  facet_wrap(~ year, ncol = 2) 
+  #scale_fill_brewer(palette = "4-class Set3")
+  
+  
+```
+
+```{r}
+recovery_times
+```
+
+
+```{r}
+head(recovery_times)
+dim(recovery_times)
+```
+
+```{r}
+ggplot(recovery_times) +
+  aes(x = treatment_group, y = recovery, fill = prognosis) +
+  geom_col(position = "dodge", col = "white") + 
+  labs(
+    title = "Recovery Times by Treatment Groups"
+  ) + 
+  theme(
+    title = element_text(size = 10, face = "bold"),
+    axis.title.x.bottom = element_text(size = 10, face = "bold"),
+    axis.title.x.top = element_text(size = 5, face = "bold")
+  ) +
+  labs(
+    x = "\nTreatment Group",
+    y = "Average Recovery Times",
+    fill = "Prognosis"
+  )
+```
+
+
+```{r}
+ggplot(fitness_levels) +
+  aes(x = group, y = fitness_score, fill = age) +
+  geom_bar(width = 0.5, stat = "identity") +
+  scale_colour_brewer(palette = "YlGn")
+  #scale_colour_continuous(guide = guide_colourbar(nbin = 6))
+  
+```
+
+3.2 Connection
+
+Choose a suitable plot for the following datasets:
+
+blood_pressure
+car_use
+
+```{r}
+blood_pressure
+```
+
+
+```{r}
+ggplot(blood_pressure) +
+  aes(x = daily_saturated_fat_intake_mg, y = systolic_blood_pressure_mm_hg, colour = systolic_blood_pressure_mm_hg) +
+  geom_point(size = 5) +
+  theme_minimal() +
+  scale_colour_gradient2( low = "green", high = "red", mid = "yellow", midpoint = 130) +
+  labs(title = "Daily Saturated Fat Intake v/s Blood Pressure",  x = "Saturated Fat Intake - mg", y = "Systolic Blood Pressure - mm hg", colour = "Levels") +
+  scale_fill_continuous(breaks=c("low","medium","high"))
+
+```
+
+
+```{r}
+car_use
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
