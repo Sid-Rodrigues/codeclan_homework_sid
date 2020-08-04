@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(prob)
+library(gtools)
+library(tidyverse)
+```
+
+1. If I roll a six-sided dice once, what is the probability of getting a number less than 5?
+```{r}
+s <- nrow(rolldie(1))
+r <- nrow(rolldie(1)%>%filter(X1<5))
+p <- r/s
+p
+
+```
+
+2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
+```{r}
+s_three_dice <- rolldie(3)
+
+s_three_dice %>%
+  summarise(size_of_s = n())
+```
+
+
+3. In an experiment where we roll four dice:
+
+a) how many outcomes are in the event total_equals_5_6_7 (i.e. the total of the four dice equals 5, 6 or 7)?
+```{r}
+s_four_dice <- rolldie(4) 
+  
+
+total_equals_5_6_7 <- s_four_dice %>%
+  mutate(total = X1 + X2 + X3 + X4) %>%
+  filter(total >=5 & total <=7) %>%
+  summarise(count = n()) 
+
+total_equals_5_6_7  
+
+
+```
+
+
+b) what is the probability of this event?
+```{r}
+s <- nrow(s_four_dice)
+r <- total_equals_5_6_7
+p <- r/s
+p
+```
+
+c) what assumptions do we apply in answering part ii?
+
+Ans: repetition allowed
+
+
+4. Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
+```{r}
+five_chair_permutations <- permutations(n = 5,
+                                        r = 5,
+                                        v = c(1:5),
+                                        repeats.allowed = FALSE)
+
+probability_decreasing_height <- 1 / nrow(five_chair_permutations)
+probability_decreasing_height
+```
+
+
+5. I roll six dice:
+
+a) what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+
+```{r}
+s_six_dice <- rolldie(6) 
+
+given_order <- c(6,5,4,3,2,1)
+
+six_to_one_order <- s_six_dice %>%
+  mutate(check_order = isin(s_six_dice, given_order, ordered = TRUE)) %>%
+  filter(check_order == TRUE)
+
+six_to_one_order
+
+prob_given_order <- nrow(six_to_one_order) / nrow(s_six_dice)
+prob_given_order
+
+```
+
+b) what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+```{r}
+six_to_one_no_order <- s_six_dice %>%
+  mutate(check_order = isin(s_six_dice, given_order)) %>%
+  filter(check_order == TRUE)
+
+six_to_one_no_order
+
+prob_given_order <- nrow(six_to_one_no_order) / nrow(s_six_dice)
+prob_given_order
+```
+
+6. If I draw a single card from a 52-card deck, and it is black, what is the probability that its suit is spades?
+
+Ans:
+event A: single card drawn - black
+event B: spades suit drawn
+
+P(A|B) = P(AnB) / P(B)
+
+P(AnB) = P(A) x P(B)
+
+P(A) = 13/26
+
+P(B) = 26/52
+
+P(A|B) =(13/26 * 26/52) / 26/52
+        = 0.5
+
+```{r}
+
+```
+
+
+
+
+
+
