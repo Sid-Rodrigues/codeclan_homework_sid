@@ -1,0 +1,149 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(prob)
+library(tidyverse)
+library(janitor)
+```
+
+1. Load the data, clean_names() and explore it.
+
+```{r}
+mobile_phone_reviews <- read_csv("data/20190928-items.csv") %>%
+  clean_names()
+mobile_phone_reviews
+```
+
+
+```{r}
+glimpse(mobile_phone_reviews)
+#unique(mobile_phone_reviews$asin)
+```
+
+2. Find the brand with the highest numbers of phones in the dataset.
+
+```{r}
+mobile_phone_reviews %>%
+  group_by(brand) %>%
+  summarise(count = n()) %>%
+  head(1)
+
+  
+```
+Ans: Top brand is Apple with highest number of phones!
+
+
+3. For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. Do you think the normal distribution provides a good model of these ratings?
+
+```{r}
+top_brand_stats <- mobile_phone_reviews %>%
+  filter(brand == "Apple") %>% #we know that top brand is Apple
+  summarise(
+    num = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+  )
+top_brand_stats
+```
+The Apple brand has 101 sample points with mean rating of 3.52 with a 0.58 deviation from the mean
+
+```{r}
+mobile_phone_reviews %>%
+  filter(brand == "Apple") %>%
+  ggplot() +
+  aes(x = rating, y = ..density..) +
+  geom_histogram(bins = 15, col = "white")
+```
+
+
+```{r}
+mobile_phone_reviews %>%
+  filter(brand == "Apple") %>%
+  ggplot() +
+  aes(x = rating) +
+  geom_histogram(aes(y = ..density..), bins = 15, col = "white") +
+  stat_function(
+    fun = dnorm,
+    args = list(
+      mean = top_brand_stats$mean,
+      sd = top_brand_stats$sd
+    ),
+    col = "red"
+  )
+
+ 
+```
+
+Ans: The normal distribution appears to be a suitable model for the distribution of ratings
+
+```{r}
+library(MASS)
+mobile_phone_reviews %>%
+  filter(brand == "Apple") %>%
+  ggplot() +
+  aes(x = rating) +
+  geom_histogram(aes(y = ..density..), bins = 15, col = "white") 
+
+fitdistr(mobile_phone_reviews$rating, "normal")
+```
+
+4. We can be more quantitative in comparing the distribution of top brand ratings with a normal distribution. You calculated the mean() and sd() of your distribution in an earlier question. Use these values to calculate the proportions of ratings within one-, two- and three standard deviations of the mean. Compare these proportions with those you expect for a normal distribution.
+
+```{r}
+mobile_phone_reviews %>%
+  filter(rating >= top_brand_stats$mean - top_brand_stats$sd) %>%
+  filter(rating <= top_brand_stats$mean + top_brand_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(mobile_phone_reviews))
+
+mobile_phone_reviews %>%
+  filter(rating >= top_brand_stats$mean - 2*top_brand_stats$sd) %>%
+  filter(rating <= top_brand_stats$mean + 2*top_brand_stats$sd) %>%
+  summarise(prop_within_2sd = n() / nrow(mobile_phone_reviews))
+
+mobile_phone_reviews %>%
+  filter(rating >= top_brand_stats$mean - 3*top_brand_stats$sd) %>%
+  filter(rating <= top_brand_stats$mean + 3*top_brand_stats$sd) %>%
+  summarise(prop_within_3sd = n() / nrow(mobile_phone_reviews))
+
+# The percentage of values within 1, 2 & 3 standard deviations of the mean
+(pnorm(q = 1) - pnorm(q = -1))
+(pnorm(q = 2) - pnorm(q = -2))
+(pnorm(q = 3) - pnorm(q = -3))
+```
+
+Ans: Comparing the distribution of top brand ratings with a normal distribution, we have the following:
+1std deviation 
+Normal: 0.6982323	
+Standard Normal: 0.6826895
+
+Normal: 0.9267677	
+Standard Normal: 0.9544997
+
+Normal: 0.9848485	
+Standard normal: 0.9973002
+
+
+
+
+X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+
+Extension
+
+```{r}
+test <- mobile_phone_reviews %>%
+  filter(brand == "Apple") 
+#test
+qqnorm(test$rating)
+qqline(test$rating)
+```
+
+Ans: qq plot take the sample data (rating), sorts it in an ascending order and then plot it versus quantiles calculated from a theoretical distribution. The number of quantiles is selected to match the size of the sample data. 
+
+qqnorm creates a normal Q-Q plot. 
+
+From the above plotm we can assume that the the rating sample is normally distributed as the points appear to lie about a straight line. 
+
+
