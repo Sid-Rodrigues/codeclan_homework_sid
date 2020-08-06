@@ -29,18 +29,19 @@ glimpse(mobile_phone_reviews)
 mobile_phone_reviews %>%
   group_by(brand) %>%
   summarise(count = n()) %>%
+  arrange(desc(count)) %>%
   head(1)
 
   
 ```
-Ans: Top brand is Apple with highest number of phones!
+Ans: Top brand is Samsung with highest number of phones!
 
 
 3. For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. Do you think the normal distribution provides a good model of these ratings?
 
 ```{r}
 top_brand_stats <- mobile_phone_reviews %>%
-  filter(brand == "Apple") %>% #we know that top brand is Apple
+  filter(brand == "Samsung") %>% #we know that top brand is Samsung
   summarise(
     num = n(),
     mean = mean(rating),
@@ -48,11 +49,11 @@ top_brand_stats <- mobile_phone_reviews %>%
   )
 top_brand_stats
 ```
-The Apple brand has 101 sample points with mean rating of 3.52 with a 0.58 deviation from the mean
+The Samsung brand has 101 sample points with mean rating of 3.52 with a 0.58 deviation from the mean
 
 ```{r}
 mobile_phone_reviews %>%
-  filter(brand == "Apple") %>%
+  filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating, y = ..density..) +
   geom_histogram(bins = 15, col = "white")
@@ -61,7 +62,7 @@ mobile_phone_reviews %>%
 
 ```{r}
 mobile_phone_reviews %>%
-  filter(brand == "Apple") %>%
+  filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating) +
   geom_histogram(aes(y = ..density..), bins = 15, col = "white") +
@@ -82,7 +83,7 @@ Ans: The normal distribution appears to be a suitable model for the distribution
 ```{r}
 library(MASS)
 mobile_phone_reviews %>%
-  filter(brand == "Apple") %>%
+  filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating) +
   geom_histogram(aes(y = ..density..), bins = 15, col = "white") 
@@ -116,13 +117,13 @@ mobile_phone_reviews %>%
 
 Ans: Comparing the distribution of top brand ratings with a normal distribution, we have the following:
 1std deviation 
-Normal: 0.6982323	
+Normal: 0.7815657	
 Standard Normal: 0.6826895
 
-Normal: 0.9267677	
+Normal: 0.9330808	
 Standard Normal: 0.9544997
 
-Normal: 0.9848485	
+Normal: 0.9848485		
 Standard normal: 0.9973002
 
 
@@ -134,7 +135,7 @@ Extension
 
 ```{r}
 test <- mobile_phone_reviews %>%
-  filter(brand == "Apple") 
+  filter(brand == "Samsung") 
 #test
 qqnorm(test$rating)
 qqline(test$rating)
