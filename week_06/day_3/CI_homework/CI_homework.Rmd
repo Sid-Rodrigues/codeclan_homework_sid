@@ -52,7 +52,7 @@ library(infer)
 ```{r}
 infer_resample_ames<- ames %>%
   specify(response = lot_area) %>%
-  generate(reps = 5000, type = "bootstrap") %>%
+  generate(reps = 10000, type = "bootstrap") %>%
   calculate(stat = "mean")
   
 infer_resample_ames  
@@ -67,7 +67,7 @@ infer_ci_95 <- infer_resample_ames %>%
 infer_ci_95
 
 infer_resample_ames %>%
-  visualise() +
+  visualise(bins = 30) +
   shade_confidence_interval(endpoints = infer_ci_95)
 ```
 

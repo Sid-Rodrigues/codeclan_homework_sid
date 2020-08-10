@@ -56,7 +56,7 @@ mobile_phone_reviews %>%
   filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating, y = ..density..) +
-  geom_histogram(bins = 15, col = "white")
+  geom_histogram(bins = 30, col = "white")
 ```
 
 
@@ -65,7 +65,7 @@ mobile_phone_reviews %>%
   filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating) +
-  geom_histogram(aes(y = ..density..), bins = 15, col = "white") +
+  geom_histogram(aes(y = ..density..), bins = 30, col = "white") +
   stat_function(
     fun = dnorm,
     args = list(
@@ -86,7 +86,7 @@ mobile_phone_reviews %>%
   filter(brand == "Samsung") %>%
   ggplot() +
   aes(x = rating) +
-  geom_histogram(aes(y = ..density..), bins = 15, col = "white") 
+  geom_histogram(aes(y = ..density..), bins = 30, col = "white") 
 
 fitdistr(mobile_phone_reviews$rating, "normal")
 ```
@@ -146,5 +146,12 @@ Ans: qq plot take the sample data (rating), sorts it in an ascending order and t
 qqnorm creates a normal Q-Q plot. 
 
 From the above plotm we can assume that the the rating sample is normally distributed as the points appear to lie about a straight line. 
+
+
+```{r}
+samsung_ratings <- mobile_phone_reviews %>%
+  filter(brand == "Samsung") %>%
+  dplyr::select(rating)
+```
 
 

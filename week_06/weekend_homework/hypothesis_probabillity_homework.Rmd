@@ -1,0 +1,370 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+data(msleep)
+```
+
+```{r}
+library(janitor)
+library(infer)
+```
+
+1. Explore the dataset and familiarise yourself with it.
+
+```{r}
+msleep %>%
+  ggplot(aes(x = sleep_total)) +
+  geom_histogram(bins = 30, col = "white")
+```
+
+```{r}
+msleep %>%
+  ggplot(aes(x = sleep_total)) +
+  geom_boxplot()
+```
+
+
+2. Jabberwockies sleep for around 7 hours a night, on average. 
+Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+H0: the mean sleep_total for sampled population is the same as the mean sleep_total for jabberwockies
+Ha: the mean sleep_total for sampled population is different from the mean sleep_total for jabberwockies
+
+H0: population mean_sleep_total = 7
+Ha: population_mean_sleep_total != 7
+
+Obeserved statistics for sample - calculate mean(sleep_total)
+```{r}
+observed_stat <- msleep %>%
+  summarise(mean_sleep = mean(sleep_total))
+
+observed_stat
+```
+Ans: The mean sleep_total in the sample is higher than typical value for jabberwockies.
+
+Is this difference big enough for this to be statistically significant? A hypothesis test is required to answer this.
+
+Assuming null hypothesis as true, generate the null sampling distribution.
+
+```{r}
+null_distribution <- msleep %>%
+  specify(response = sleep_total) %>%
+  hypothesize(null = "point", mu = 7) %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+null_distribution
+```
+
+
+Now, visualise the null distribution and observed stat.
+
+```{r}
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat$mean_sleep, direction = "both")
+```
+
+We choose the Ha: population_mean_sleep_total != 7
+
+Calculate p-value
+
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat$mean_sleep, direction = "both")
+
+p_value
+```
+
+0 indicates a failure to reject the null hypothesis at the 5% significance level.
+p-value 0 may imply that we have seen a significant difference in the mean sleep_total if the H0 were true.
+So we reject H0 in favour of Ha i.e. the mean sleep_total for sampled population is different from the mean sleep_total for jabberwockies.
+
+
+
+3. Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+#This is an example of two-sample hypothesis, independent samples.
+
+Assuming the conventional significance level α = 0.05, and a one-tailed test:
+
+H0: μomnivore − μherbivore = 0 i.e. no relationship
+Ha: μomnivore − μherbivore > 0
+Let’s visualise the distributions
+
+```{r}
+sleep_compare <- msleep%>%
+  filter(vore == "omni" | vore == "herbi") %>%
+  group_by(vore)
+  
+sleep_compare
+
+```
+
+```{r}
+sleep_compare %>%
+  #summarise(n = n()) 
+  summarise(avg_sleep = mean(sleep_total))
+
+```
+
+
+```{r}
+sleep_compare %>%
+  ggplot(aes(x = vore, y = sleep_total)) +
+  geom_boxplot()
+```
+
+There sleep times for herbivore tend to be higher on average as well as fully overlapping omnivores sleep times. This could be due to the sample size variation. But we need to check whether it is statistacally significant difference bu carrying out hypothesis test.
+
+As per H0, the sleep times would be independent of herbi / omnivores.
+
+In this case the null distribution shall be by permutation so that the sleep times can be randomly shuffled without implications (accordingto H0).
+
+```{r}
+null_distribution <- sleep_compare %>%
+  specify(sleep_total ~ vore) %>% # relationship between sleep time and type of vore
+  hypothesise(null = "independence") %>% # testing H0, i.e no relationship
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("herbi", "omni")) 
+
+head(null_distribution)
+```
+
+Now, calculate observed_stat
+
+```{r}
+obs_stat_sleep <- sleep_compare %>%
+  specify(sleep_total ~ vore) %>%
+  calculate(stat = "diff in means", order = c("herbi", "omni"))
+
+obs_stat_sleep
+```
+
+Now, visualise the null distribution and observed stat.
+
+
+```{r}
+null_distribution %>%
+  visualise() +
+  shade_p_value(obs_stat = obs_stat_sleep, direction = "right") # >0 i.e right
+```
+
+
+Calculate p-value
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = obs_stat_sleep, direction = "right")
+
+p_value
+```
+
+If p-value less than 5%, reject test and if more that 5%, fail to reject test.
+P- value is greater than 5%, so fail to reject H0 test.
+There is enough evidence in our data to suggest the average sleep times for herbivore is significantly longer than omnivores.
+
+
+
+4. Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%.
+[Hint - think about creating an is_domesticated variable for the analysis]
+
+
+```{r}
+animals <- msleep %>%
+  filter(!is.na(conservation))
+
+
+
+```
+Proportion of domesticated animal types 
+
+```{r}
+animals %>%
+  group_by(conservation) %>%
+  summarise(prop = n()/nrow(animals)) %>%
+  filter(conservation == "domesticated")
+```
+
+In the sample, the proportion of domesticated animal types is 18.5%.
+
+```{r}
+animals_domesticated <- msleep %>%
+  filter(!is.na(conservation)) %>%
+  mutate(is_domesticated = ifelse(conservation == "domesticated", "domesticated", "not_domesticated"))
+animals_domesticated
+```
+
+```{r}
+animals_domesticated %>%
+  group_by(is_domesticated) %>%
+  summarise(prop = n() / nrow(animals_domesticated))
+```
+
+??? Do we need hypothesis to ascertain whether or not the proportion of domesticated animal types in the population of animal types is greater than 5% ????
+
+
+1.2 Hypothesis testing - interpretation
+1.2.1 Defining the Hypothesis
+For the following three business problems write out H0 and Ha in both mathematical notation and in words. Also state the method you would use to generate the null distribution (bootstrap, permutation or simulation).
+
+1. You work for a independent coffee shop. You’ve performed a small survey in the local town and found that 40% of the people you randomly asked were aware of your shop in the town. You then conduct a marketing campaign by flyering local venues and targeting advertisements on social media. Finally you conduct a second small random survey in the town, asking if people are aware of your coffee shop. You want to test the hypothesis that the campaign has significantly increased awareness of the shop.
+
+Ans:
+H0: Awareness of shop is not changed after flyering.
+Ha: Awareness of shop is significantly increased after flyering 
+
+Null Hypothesis, H0 : π shop awareness after flyering = 0.40
+Ha: π shop awareness after flyering > 0.40
+Statistic: p^ 
+Example code for infer:
+null_distribution<- sample_data %>% 
+  specify(response = awareness) %>% 
+  hypothesize(null = "point", mu = 0.40) %>% 
+  generate(reps = 10000, type = "simulate") %>% 
+  calculate(stat = "prop")
+
+
+2. You work for a website design company and have performed an A/B test on the position of a banner on a website page promoting a particular item.
+
+A/B testing A method comparing two versions of a web page, email, flyer or other marketing device against each other to determine which version performs better. As it is essentially a controlled experiment, the design should try to ensure that the groups experiencing both versions of the marketing device are need to establish that the two groups are equivalent and representative of the population.
+
+In the current test, the first group continues to be shown the banner at the right hand side of the webpage (its usual position) while the test group is shown it at the top of the page. The performance metric we will be testing is click through rate (CTR) on the banner, i.e. what proportion of users click on the banner
+
+Ans:
+H0: CTR not changed when banner at top of page.
+Ha: CTR changed significantly after position of banner on top of page 
+
+H0 : H0  is true, i.e. the probability of ‘success’ is set to π 0.
+Ha: πa 
+
+null_distribution<- sample_data %>% 
+  specify(response = ctr, success = "pass") %>% 
+  hypothesize(null = "point", ) %>% 
+  generate(reps = 10000, type = "simulate") %>% 
+  calculate(stat = "prop")
+  
+  
+3. You work as an analyst for a car manufacturing company - they have specific standards they must meet for standards and regulation purposes. You have been asked to check the quality control of the manufacture of a particular car part. The part must have a width of 145mm, with a small (given) level of tolerance. You have been given data on a sample of 1,000 parts produced over the period of a week.
+
+
+Ans:
+H0: The mean width of part is the same as the mean of the sample
+Ha: the mean width of the part is different from the mean of the sample
+
+H0 : μ average_width = average_width_sample
+Ha: μ average_width ≠ average_width_sample
+
+null_distribution <- sample_data %>% 
+  specify(response = average_width) %>% 
+  hypothesize(null = "point", mu = average_width_sample) %>% 
+  generate(reps = 10000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+  
+  
+
+1.2.2 Interpreting the results
+
+For the 3 business problems stated above, imagine we performed you got the following p-values (with the given significance levels) write out your interpretation of the results.
+
+1. Coffee shop problem. Significance level: 0.05, calculated p-value: 0.07
+
+Ans: p value is greater than significance level. So, we lack sufficient evidence to reject H0. Based on the sample , we do not have enough evidence that the proportion of awareness of shop is significantly increased after flyering.
+
+
+2. Website company problem. Significance level: 0.01, p-value: 0.006
+
+Ans: p-value is less than significance level. So, we reject H0 in favour of Ha. We found enough evidence in the sample to suggest that the proportion of CTR changed significantly after position of banner on top of page. 
+
+
+3. Manufacturing company problem. Significance level: 0.05, p-value: 0.55
+
+Ans: p-value is very high. So, reject H0. There is not strong evidence to suggest that the average width of the part is not equal to mean average width of the sample.
+
+
+2.4 Homework exercise
+
+```{r}
+transactions <- read_csv("data/online_retail_subset.csv")
+```
+
+
+```{r}
+head(transactions, 20)
+```
+
+
+2.5 Association rules
+For the first section we are interested in the purchase of two particular items:
+
+item A - ‘HEART OF WICKER SMALL’ (StockCode 22469)
+item B - ‘LARGE CAKE TOWEL PINK SPOTS’ (StockCode 21110)
+
+1. Calculate the support for item A (this will be the support for a single item)
+
+```{r}
+sup_a <- transactions %>%
+  filter(StockCode == 22469) %>%
+  summarise (prob = n()/nrow(transactions))
+
+sup_a
+```
+
+
+2. Calculate the support and confidence for rule (A→B).
+
+```{r}
+sup_a_b <- transactions %>%
+  filter(StockCode == 22469 | StockCode == 21110) %>%
+  summarise (prob = n()/nrow(transactions))
+
+sup_a_b
+```
+
+```{r}
+conf_a_b <- sup_a_b / sup_a
+conf_a_b
+```
+
+3. Calculate the lift for (A→B) [Hint - you will need to calculate the support for B]
+
+```{r}
+sup_b <- transactions %>%
+  filter(StockCode == 21110) %>%
+  summarise (prob = n()/nrow(transactions))
+
+sup_b
+```
+
+```{r}
+lift_a_b <- sup_a_b /(sup_a * sup_b)
+
+lift_a_b
+```
+
+
+
+
+
+```{r}
+library(arules)
+library(arulesViz)
+```
+
+
+```{r}
+transactions_reformat <- transactions %>%
+  select(InvoiceNo, Description) %>%
+  na.omit()
+
+write_csv(transactions_reformat, "transactions_reformat.csv")
+
+apriori_format <- read.transactions("transactions_reformat.csv", format = "single", sep = ",", header = TRUE, cols = c("InvoiceNo", "Description"))
+```
+
+```{r}
+inspect(head(apriori_format))
+```
+
