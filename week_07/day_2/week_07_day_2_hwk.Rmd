@@ -127,15 +127,94 @@ forecast_4months %>%
   autoplot(bikes_filled, level = NULL)
 ```
 
+6 Question 6
+Test your model accuracy : choose a training data set from your main dataset, build a forecast on the training set, and then plot the training set forecast against the real data. Calculate model accuracy.
+
+```{r}
+# create training data set
+# 10 months training vs 2 months left over
+bikes_training <- bikes_filled %>%
+  filter_index("2018-01-01" ~ "2018-10-31")
+bikes_training  
+```
+
+```{r}
+# fit model on training data
+
+fit_training <- bikes_training %>%
+  model(
+    naive_model = NAIVE(hire_count),
+    mean_model = MEAN(hire_count),
+    snaive_model = SNAIVE(hire_count)
+  )
+
+fit_training
+```
+
+```{r}
+forecast_training <- fit_training %>%
+  fabletools::forecast(h = "2 months")
+```
+
+```{r}
+forecast_training %>%
+  autoplot(bikes_training, level = NULL) +
+  autolayer(filter_index(bikes_filled, "2018-11-01" ~ .), colour = "blue")
+```
+
+```{r}
+# calculate accuracy score
+
+accuracy_model <- fabletools::accuracy(forecast_training, bikes_filled)
+
+accuracy_model %>%
+  arrange(RMSE)
+```
+
+7 Question 7
+Look at your forecast plots and accuracy values. Describe your results. Are your models a good fit for the data? If not, why not? What would you suggest doing with the data if you were expected to present these back to a client? For example, would you ask for more data? Would you test a different model?
+
+
+Ans: The model does not appear to be a good fit for the data. However, the mean method has the least error. I woudl ask the client for more data in order to improve the accuracy of forecast.
 
 
 
 
+8 Question 8
+Make a simple ggplot (geom_point) which plots the start longitude and latitudes of each bike. Create a separate facet for each bike_id. Colour the dots in by month of use. What does this tell you about what month each bike was used most in?
+
+Do the same for the end longitude and latitudes.
 
 
+```{r}
+bikes %>%
+  ggplot() +
+  geom_point(aes(x = start_lat, y = start_long, group = bike_id, colour = month)) +
+  facet_wrap(~ bike_id, ncol = 2)
+  
+    
+```
 
 
+```{r}
+bikes %>%
+  ggplot() +
+  geom_point(aes(x = end_lat, y = end_long, group = bike_id, colour = month)) +
+  facet_wrap(~ bike_id, ncol = 2)
 
+```
+
+9 Question 9
+Create an interactive leaflet plot which plots the start points of the city bikes. Ensure it has at least markers to denote start points (taken from the nyc_bikes_spatial data). Feel free to add any additional features you wish.
+
+```{r}
+library(leaflet)
+
+leaflet(bikes) %>%
+  addTiles() %>%
+  addMarkers(lng = ~ start_long, lat = ~ start_lat)
+
+```
 
 
 
