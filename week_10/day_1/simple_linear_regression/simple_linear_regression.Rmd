@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+# 2 project_management analysis
+
+# Load the data into a dataframe project
+
+
+```{r}
+project <- read_csv("../data/project_management.csv")
+```
+
+# Plot the data, taking estimated_length as the independent variable and actual_length as the dependent variable.
+
+```{r}
+project %>%
+  ggplot(aes(estimated_length, actual_length)) +
+  geom_point()
+
+```
+
+
+# Label the data points with their row number in the data frame using geom_text() [Hint - you can pass aes(label = 1:nrow(project)) to this layer to generate row index labels]
+
+```{r}
+project %>%
+  ggplot(aes(estimated_length, actual_length)) +
+  geom_point() +
+  geom_text(aes(label = 1:nrow(project)), nudge_x = 0.25, check_overlap = TRUE)
+```
+
+# Identify by eye any points you think might be outliers and note their labels.
+
+Outliers: 5, 18, 24
+
+# Further split your outliers into those you think are ‘influential’ or ‘non-influential’ based on a visual assessment of their leverage.
+
+Influencial : 24, 18
+Non-Influencial : 5
+
+
+# Regress actual_length on estimated_length and confirm your visual assessment of which points are ‘influential’ or ‘non-influential’ outliers based on Cook’s distance. You can get a useful plot of Cook’s distance by passing argument which = 4 to autoplot(). Or try the base R plot() function for comparison [e.g. plot(model)]!
+
+```{r}
+library(ggfortify)
+model <- lm(actual_length ~ estimated_length, data = project)
+autoplot(model, which = 4)
+```
+
+Obtain the intercept and regression coefficient of variable estimated_length for a simple linear model fitted to data omitting one of your non-influential outlier points.
+```{r}
+refunds_no_outliers <- refunds %>%
+  filter(is_outlier == FALSE)
+```
+
+
+
+```{r}
+summary(model)
+
+```
+
+
+How different are the intercept and coefficient from those obtained above by fitting the full data set? Does this support classifying the omitted point as non-influential?
+Plot the data points, this regression line and the regression line for the full data set. How different are the lines?
+
+
+
+
+
+
+
+
+
+
+
+
