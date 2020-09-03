@@ -1,0 +1,232 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(car)
+library(tidyverse)
+library(modelr)
+library(GGally)
+```
+
+```{r}
+housing_sale_prices <- read_csv("data/kc_house_data.csv")
+```
+
+```{r}
+summary(housing_sale_prices)
+```
+
+```{r}
+glimpse(housing_sale_prices)
+```
+
+# Tidy up the data ready for regression
+
+
+```{r}
+unique(housing_sale_prices$condition)
+unique(housing_sale_prices$grade)
+unique(housing_sale_prices$view)
+```
+
+Removing date, id, sqft_living15, sqft_lot15 and zipcode 
+Keeping waterfront as is. 
+Converted yr_renovated into a renovated logical variable, indicating whether the property had ever been renovated. 
+
+
+```{r}
+housing_trim <- housing_sale_prices %>%
+  mutate(renovated =  ifelse(yr_renovated == 0, FALSE, TRUE)) %>%
+  select(-c(date, id, sqft_living15, sqft_lot15, zipcode, yr_renovated))
+  
+```
+
+```{r}
+glimpse(housing_trim)
+```
+
+
+Have a think about how to treat condition and grade? Are they interval or categorical ordinal data types?
+
+Create dummy variables for 'condition' and drop out redundant column
+
+```{r}
+housing_dummy <- housing_trim %>%
+  fastDummies::dummy_cols(select_columns = "condition", remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+
+housing_dummy
+```
+
+For grade, we can use binning
+Create a variable with the new categories
+
+
+```{r}
+housing_dummy <- housing_dummy %>%
+  mutate(grade_category = cut(grade, breaks = c(-Inf, 4, 8, 12, Inf), right = TRUE, labels = c("A", "B", "C", "D"))) 
+  
+housing_dummy
+```
+ 
+Create dummy variables based on the new categorical variable
+
+```{r}
+housing_dummy <- housing_dummy %>%
+  fastDummies::dummy_cols(select_columns = "grade_category", remove_first_dummy = TRUE) %>%
+  select(-c(grade, grade_category)) #remove the columns that the dummy variables are based on
+housing_dummy
+```
+
+
+Check for aliased variables using the alias() function (this takes in a formula object and a data set). [Hint - formula price ~ . says ‘price varying with all predictors’, this is a suitable input to alias()]. Remove variables that lead to an alias. Check the ‘Elements of multiple regression’ lesson for a dropdown containing further information on finding aliased variables in a dataset.
+
+```{r}
+alias(lm(price ~ ., data = housing_dummy))
+```
+
+The output says that sqft_basement can be calculated as 
+intercept + sqft_living + not sqft_above
+So we can drop sqft_basement
+
+
+```{r}
+housing_trim <- housing_dummy %>%
+  select(-c("sqft_basement"))
+housing_trim
+```
+
+
+Systematically build a regression model containing up to four main effects (remember, a main effect is just a single predictor with coefficient), testing the regression diagnostics as you go 
+
+splitting datasets into numeric and non-numeric columns might help ggpairs() run in manageable time, although you will need to add either a price or resid column to the non-numeric dataframe in order to see its correlations with the non-numeric predictors.
+
+```{r}
+houses_tidy_numeric <- housing_trim %>%
+  select_if(is.numeric)
+
+houses_tidy_numeric
+```
+
+```{r}
+housing_test <- housing_trim %>%
+  select(-c(condition_2, condition_3, condition_4, condition_5, grade_category_B, grade_category_C, grade_category_D, renovated, view))
+```
+
+```{r}
+housing_test1 <- housing_trim %>%
+  select(c(price, condition_2, condition_3, condition_4, condition_5, grade_category_B, grade_category_C, grade_category_D, renovated, view))
+```
+
+
+```{r}
+gggpairs(housing_test)
+ggpairs(housing_test1)
+```
+
+The ggpairs plots reveal that sqft_living strongly corelated with price.
+Also, sqft_above, bathrooms, and view are strongly corelated with price.
+
+
+FIRST PREDICTOR
+Now, lets start with sqft_living.
+
+```{r}
+mod1a <- lm(price ~ sqft_living, data = houses_tidy_numeric)
+mod1a
+```
+
+The regression equation is 
+Price = -43580.7 + 280.6 * sqft_living
+
+```{r}
+summary(mod1a)
+```
+
+The summary tells us that the r2 value is moderate i.e. 49% of the variance in price is based on sqft_living
+The residual std error is 261500
+P-value < 5
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod1a)
+```
+
+
+Check using 'sqft_above' as predictor
+
+```{r}
+mod1b <- lm(price ~ sqft_above, data = houses_tidy_numeric)
+mod1b
+```
+
+The regression equation is 
+Price = 59953.2 + 268.5 * sqft_above
+
+```{r}
+summary(mod1b)
+```
+
+The summary tells us that the r2 value is low i.e. 36.6% of the variance in price is based on sqft_above
+The residual std error is 292200
+P-value < 5
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod1b)
+```
+
+
+
+Check using 'bathrooms' as predictor
+
+```{r}
+mod1c <- lm(price ~ bathrooms, data = houses_tidy_numeric)
+mod1c
+```
+
+The regression equation is 
+Price = 10708 + 250327 * sqft_above
+
+```{r}
+summary(mod1c)
+```
+
+The summary tells us that the r2 value is low i.e. 27.5% of the variance in price is based on bathrooms
+The residual std error is 312400
+P-value < 5
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod1c)
+```
+
+
+Check using 'bedrooms' as predictor
+
+```{r}
+mod1d <- lm(price ~ bedrooms, data = houses_tidy_numeric)
+mod1d
+```
+
+The regression equation is 
+Price = 129802 + 121716 * sqft_above
+
+```{r}
+summary(mod1d)
+```
+
+The summary tells us that the r2 value is low i.e. 9% of the variance in price is based on sqft_above
+The residual std error is 349200
+P-value < 5
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod1d)
+```
+
+
+SECOND PREDICTOR
+
+

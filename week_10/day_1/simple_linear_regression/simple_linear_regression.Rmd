@@ -56,14 +56,17 @@ autoplot(model, which = 4)
 
 Obtain the intercept and regression coefficient of variable estimated_length for a simple linear model fitted to data omitting one of your non-influential outlier points.
 ```{r}
-refunds_no_outliers <- refunds %>%
-  filter(is_outlier == FALSE)
+omit_18 <- project %>%
+  slice(-18)
+
+omit_18_model <- lm(actual_length ~ estimated_length, data = omit_18)
+omit_18_model
 ```
 
 
 
 ```{r}
-summary(model)
+plot(model)
 
 ```
 
