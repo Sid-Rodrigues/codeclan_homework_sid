@@ -1,0 +1,58 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+
+```{r}
+avocado <- read_csv("../data/avocado.csv")
+```
+
+```{r}
+glimpse(avocado)
+```
+
+```{r}
+summary(avocado)
+```
+
+```{r}
+unique(avocado$type)
+unique(avocado$region)
+unique(avocado$year)
+```
+
+
+```{r}
+# Tidy up data
+# region leads to many dummy variables, therefore can be dropped
+# drop date
+# type and year are categorical
+# extract month from date
+avocado_tidy <- avocado %>%
+  clean_names() %>%
+  mutate(month = as_factor(lubridate::month(date))) %>%
+  mutate(year = as_factor(year)) %>%
+  mutate(type = as_factor(type)) %>%
+  select(-c("x1", "date", "region"))
+ 
+```
+
+
+```{r}
+
+avocado %>%
+  clean_names() %>%
+  mutate(month = lubridate::month(date)) %>%
+  ggplot() +
+  geom_col(aes(x = month, y = average_price, fill = type), position = "dodge") +
+  facet_wrap(~ year)
+  
+  
+```
+

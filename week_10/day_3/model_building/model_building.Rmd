@@ -11,90 +11,61 @@ library(GGally)
 ```
 
 ```{r}
-housing_sale_prices <- read_csv("data/kc_house_data.csv")
+houses_data <- read_csv("data/kc_house_data.csv")
 ```
 
 ```{r}
-summary(housing_sale_prices)
+summary(houses_data)
 ```
 
 ```{r}
-glimpse(housing_sale_prices)
+glimpse(houses_data)
 ```
 
 # Tidy up the data ready for regression
 
 
 ```{r}
-unique(housing_sale_prices$condition)
-unique(housing_sale_prices$grade)
-unique(housing_sale_prices$view)
+unique(houses_data$condition)
+unique(houses_data$grade)
+unique(houses_data$view)
 ```
 
 Removing date, id, sqft_living15, sqft_lot15 and zipcode 
-Keeping waterfront as is. 
+Convert Waterfront to logical 
 Converted yr_renovated into a renovated logical variable, indicating whether the property had ever been renovated. 
+Convert condition and grade to factor because they are categorical
 
 
 ```{r}
-housing_trim <- housing_sale_prices %>%
-  mutate(renovated =  ifelse(yr_renovated == 0, FALSE, TRUE)) %>%
-  select(-c(date, id, sqft_living15, sqft_lot15, zipcode, yr_renovated))
+houses_tidy <- houses_data %>%
+  select(-c("id", "date", "sqft_living15", "sqft_lot15", "zipcode")) %>%
+  mutate(waterfront = as.logical(waterfront)) %>%
+  mutate(renovated = yr_renovated != 0) %>%
+  select(-"yr_renovated") %>%
+  mutate(condition = as_factor(condition)) %>%
+  mutate(grade = as_factor(grade))
+
+glimpse(houses_tidy)
   
 ```
-
-```{r}
-glimpse(housing_trim)
-```
-
-
-Have a think about how to treat condition and grade? Are they interval or categorical ordinal data types?
-
-Create dummy variables for 'condition' and drop out redundant column
-
-```{r}
-housing_dummy <- housing_trim %>%
-  fastDummies::dummy_cols(select_columns = "condition", remove_first_dummy = TRUE, remove_selected_columns = TRUE)
-
-housing_dummy
-```
-
-For grade, we can use binning
-Create a variable with the new categories
-
-
-```{r}
-housing_dummy <- housing_dummy %>%
-  mutate(grade_category = cut(grade, breaks = c(-Inf, 4, 8, 12, Inf), right = TRUE, labels = c("A", "B", "C", "D"))) 
-  
-housing_dummy
-```
- 
-Create dummy variables based on the new categorical variable
-
-```{r}
-housing_dummy <- housing_dummy %>%
-  fastDummies::dummy_cols(select_columns = "grade_category", remove_first_dummy = TRUE) %>%
-  select(-c(grade, grade_category)) #remove the columns that the dummy variables are based on
-housing_dummy
-```
-
 
 Check for aliased variables using the alias() function (this takes in a formula object and a data set). [Hint - formula price ~ . says ‘price varying with all predictors’, this is a suitable input to alias()]. Remove variables that lead to an alias. Check the ‘Elements of multiple regression’ lesson for a dropdown containing further information on finding aliased variables in a dataset.
 
 ```{r}
-alias(lm(price ~ ., data = housing_dummy))
+alias(price ~ ., data = houses_tidy)
 ```
 
 The output says that sqft_basement can be calculated as 
-intercept + sqft_living + not sqft_above
+intercept + sqft_living - sqft_above
 So we can drop sqft_basement
 
 
 ```{r}
-housing_trim <- housing_dummy %>%
+houses_tidy <- houses_tidy %>%
   select(-c("sqft_basement"))
-housing_trim
+
+glimpse(houses_tidy)
 ```
 
 
@@ -103,20 +74,37 @@ Systematically build a regression model containing up to four main effects (reme
 splitting datasets into numeric and non-numeric columns might help ggpairs() run in manageable time, although you will need to add either a price or resid column to the non-numeric dataframe in order to see its correlations with the non-numeric predictors.
 
 ```{r}
-houses_tidy_numeric <- housing_trim %>%
+houses_tidy_numeric <- houses_tidy %>%
   select_if(is.numeric)
 
-houses_tidy_numeric
+ggpairs(houses_tidy_numeric)
+```
+
+
+Correlation of sqft_living with price looks pretty promising
+
+```{r}
+houses_tidy_nonnumeric <- houses_tidy %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- houses_tidy$price
+
+ggpairs(houses_tidy_nonnumeric)
+
+```
+
+The split of price by grade and waterfront also look decent.
+
+```{r}
+houses_tidy %>%
+  ggplot(aes(x = grade, y = price)) +
+  geom_boxplot()
 ```
 
 ```{r}
-housing_test <- housing_trim %>%
-  select(-c(condition_2, condition_3, condition_4, condition_5, grade_category_B, grade_category_C, grade_category_D, renovated, view))
-```
-
-```{r}
-housing_test1 <- housing_trim %>%
-  select(c(price, condition_2, condition_3, condition_4, condition_5, grade_category_B, grade_category_C, grade_category_D, renovated, view))
+houses_tidy %>%
+  ggplot(aes(x = waterfront, y = price)) +
+  geom_boxplot()
 ```
 
 
@@ -126,107 +114,207 @@ ggpairs(housing_test1)
 ```
 
 The ggpairs plots reveal that sqft_living strongly corelated with price.
-Also, sqft_above, bathrooms, and view are strongly corelated with price.
+Also, The split of price by grade appears to be strongly influenced.
 
 
 FIRST PREDICTOR
 Now, lets start with sqft_living.
 
 ```{r}
-mod1a <- lm(price ~ sqft_living, data = houses_tidy_numeric)
-mod1a
+mod1a <- lm(price ~ sqft_living, data = houses_tidy)
+summary(mod1a)
 ```
 
 The regression equation is 
 Price = -43580.7 + 280.6 * sqft_living
 
 ```{r}
-summary(mod1a)
-```
-
-The summary tells us that the r2 value is moderate i.e. 49% of the variance in price is based on sqft_living
-The residual std error is 261500
-P-value < 5
-
-```{r}
-par(mfrow = c(2, 2))
-plot(mod1a)
-```
-
-
-Check using 'sqft_above' as predictor
-
-```{r}
-mod1b <- lm(price ~ sqft_above, data = houses_tidy_numeric)
-mod1b
-```
-
-The regression equation is 
-Price = 59953.2 + 268.5 * sqft_above
-
-```{r}
+mod1b <- lm(price ~ grade, data = houses_tidy)
 summary(mod1b)
 ```
 
-The summary tells us that the r2 value is low i.e. 36.6% of the variance in price is based on sqft_above
-The residual std error is 292200
-P-value < 5
+
+
+```{r}
+mod1c <- lm(price ~ waterfront, data = houses_tidy)
+summary(mod1c)
+```
+
+
+# grade looks the most promising, but some of the grade level coeffs are insignificant.
+# the F-test at the bottom of the regression output tests against the null model (i.e. intercept only)
+# but, if we want, we can replicate this using a separate anova
+# null model: regress price on intercept only
+
+```{r}
+null_model <- lm(price ~ 1, data = houses_tidy)
+grade_model <- lm(price ~ grade, data = houses_tidy)
+anova(null_model, grade_model)
+```
+
+# grade is significant, let's keep it. Now plot diagnostics
 
 ```{r}
 par(mfrow = c(2, 2))
 plot(mod1b)
 ```
 
-
-
-Check using 'bathrooms' as predictor
-
-```{r}
-mod1c <- lm(price ~ bathrooms, data = houses_tidy_numeric)
-mod1c
-```
-
-The regression equation is 
-Price = 10708 + 250327 * sqft_above
-
-```{r}
-summary(mod1c)
-```
-
-The summary tells us that the r2 value is low i.e. 27.5% of the variance in price is based on bathrooms
-The residual std error is 312400
-P-value < 5
-
-```{r}
-par(mfrow = c(2, 2))
-plot(mod1c)
-```
-
-
-Check using 'bedrooms' as predictor
-
-```{r}
-mod1d <- lm(price ~ bedrooms, data = houses_tidy_numeric)
-mod1d
-```
-
-The regression equation is 
-Price = 129802 + 121716 * sqft_above
-
-```{r}
-summary(mod1d)
-```
-
-The summary tells us that the r2 value is low i.e. 9% of the variance in price is based on sqft_above
-The residual std error is 349200
-P-value < 5
-
-```{r}
-par(mfrow = c(2, 2))
-plot(mod1d)
-```
-
-
 SECOND PREDICTOR
+
+```{r}
+houses_resid <- houses_tidy %>%
+  add_residuals(mod1b) %>%
+  select(-c("price", "grade"))
+
+houses_resid_numeric <- houses_resid %>%
+  select_if(is.numeric)
+
+houses_resid_nonnumeric <- houses_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_resid_nonnumeric$resid <- houses_resid$resid
+```
+
+
+```{r}
+ggpairs(houses_resid_numeric)
+```
+
+
+```{r}
+ggpairs(houses_resid_nonnumeric)
+```
+
+
+lat has highest correlation with residuals, but, again, waterfront still looks pretty promising. Try both…
+
+```{r}
+mod2a <- lm(price ~ grade + lat, data = houses_tidy)
+summary(mod2a)
+```
+
+```{r}
+mod2b <- lm(price ~ grade + waterfront, data = houses_tidy)
+summary(mod2b)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod2a)
+```
+
+THIRD PREDICTOR
+
+```{r}
+houses_resid <- houses_tidy %>%
+  add_residuals(mod2a) %>%
+  select(-c("price", "grade", "lat"))
+
+houses_resid_numeric <- houses_resid %>%
+  select_if(is.numeric)
+
+houses_resid_nonnumeric <- houses_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_resid_nonnumeric$resid <- houses_resid$resid
+```
+
+
+```{r}
+ggpairs(houses_resid_numeric)
+```
+
+
+```{r}
+ggpairs(houses_resid_nonnumeric)
+```
+
+Now view has strongest correlation with residuals, but also compare against model with waterfront.
+
+
+```{r}
+mod3a <- lm(price ~ grade + lat + view, data = houses_tidy)
+summary(mod3a)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod3a)
+```
+
+FOURTH PREDICTION
+
+```{r}
+houses_resid <- houses_tidy %>%
+  add_residuals(mod3a) %>%
+  select(-c("price", "grade", "lat", "view"))
+
+houses_resid_numeric <- houses_resid %>%
+  select_if(is.numeric)
+
+houses_resid_nonnumeric <- houses_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_resid_nonnumeric$resid <- houses_resid$resid
+```
+
+```{r}
+ggpairs(houses_resid_numeric)
+```
+
+
+```{r}
+ggpairs(houses_resid_nonnumeric)
+```
+
+sqft_living has highest correlation with residuals. Let’s test against all remaining categorical predictors:
+
+
+```{r}
+mod4a <- lm(price ~ grade + lat + view + sqft_living, data = houses_tidy)
+summary(mod4a)
+```
+
+```{r}
+mod4b <- lm(price ~ grade + lat + view + waterfront, data = houses_tidy)
+summary(mod4b)
+```
+
+```{r}
+mod4c <- lm(price ~ grade + lat + view + condition, data = houses_tidy)
+summary(mod4c)
+```
+
+```{r}
+mod4d <- lm(price ~ grade + lat + view + renovated, data = houses_tidy)
+summary(mod4d)
+```
+
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod4a)
+```
+
+
+```{r}
+houses_resid <- houses_tidy %>%
+  add_residuals(mod4a) %>%
+  select(- price)
+```
+
+Our final model in terms of main effects is: price ~ grade + lat + view + sqft_living
+
+
+
+
+
+
+
+
+
+
+
+
 
 
