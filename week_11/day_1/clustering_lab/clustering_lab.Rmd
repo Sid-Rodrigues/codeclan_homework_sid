@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(janitor)
+library(fastDummies)
+library(broom)
+library(rpart)
+library(rpart.plot)
+library(tidyverse)
+
+```
+
+
+Clustering
+Use k-means clustering to investigate potential relationships in the dataset computers.csv that has information of computer sales. We are interested in relationships between hd (hard drive size) and ram (type of computer memory):
+
+```{r}
+computers <- read_csv("../data/computers.csv")
+```
+
+
+Explore the data - do you think it looks potentially suitable for clustering?
+
+```{r}
+head(computers)
+```
+
+```{r}
+computer_sales <- computers %>%
+  select(c(hd, ram))
+
+ggplot(computer_sales, aes(hd, ram)) +
+  geom_point()
+```
+
+# Scale data
+
+```{r}
+computer_sales_scale<- computer_sales %>% 
+  mutate_all(scale)
+
+summary(computer_sales_scale)
+  
+```
+
+#Check each of the methods of choosing k:
+
+1. Elbow method
+
+```{r}
+library(factoextra)
+fviz_nbclust(computer_sales_scale, kmeans, method = "wss", nstart = 25)
+```
+
+# This graph is fairly smooth curve - rather than a defined kink. Some arguement that kink at k = 2 or k = 4.
+
+2. Silhouette coefficient
+
+```{r}
+fviz_nbclust(computer_sales_scale, kmeans, method = "silhouette", nstart = 25)
+```
+
+# Silhouette method is giving k = 10 but the values for k = 2,7,9 are very close to the silhouette width, so very close margin that k=10 has been picked as optimal.
+
+3. Gap statistic
+
+```{r}
+fviz_nbclust(computer_sales_scale, kmeans, method = "gap_stat") #would put nstart=25 if had more computing power
+```
+
+
+# This gives a result of k = 3.
+
+# We get quite different results for each of the methods and for elbow and silhouette many values of k give quite similar results. This can be a sign data is not well suited for k-means clustering.
+
+# From the elbow method and the silhouette coefficient going to go for k=2.
+
+```{r}
+clustered_computer_sales <- kmeans(computer_sales_scale, 2, nstart = 25)
+
+clustered_computer_sales
+```
+
+# Pull out the cluster means and sizes for your chosen number of clusters.
+
+```{r}
+clustered_computer_sales$size
+```
+
+```{r}
+clustered_computer_sales$centers
+```
+
+# Visualise the clusters.
+
+```{r}
+clusters <- augment(clustered_computer_sales, computer_sales)
+
+ggplot(clusters, aes(x = hd, y = ram, colour = .cluster)) +
+  geom_point() 
+```
+
+
+Comment on the results:
+
+Judging from the visualisation the points within cluster 1 are very different - RAM ranges from 4 to 32 and HD ranges from 340 to 2,100 (both almost as wide as the full spread of the dataset). So it doesn’t seem like the computers within cluster 1 are particularly similar in attributes e.g. say we were using clustering to find groups of similar computers to create a new product for - the product would need to cater for pretty much any of the computer in the dataset rather than target a subgroup which had similar ram/hd levels.
+
+Would potentially try other values of k or may look into a different type of clustering for this data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+K Means Clustering
+K means is an iterative clustering algorithm that aims to find local maxima in each iteration. This algorithm works in these 5 steps :
+
+	1.	Specify the desired number of clusters K (Elbow Method, Silhouette Coefficient, Gap Statistics)
+￼
+	2.	Randomly assign each data point to a cluster 
+￼
+	3.	Compute cluster centroids 
+￼
+	4.	Re-assign each point to the closest cluster centroid ￼
+	5.	Re-compute cluster centroids
+￼
+	6.	Repeat steps 4 and 5 until no improvements are possible : Similarly, we’ll repeat the 4th and 5th steps until we’ll reach global optima. When there will be no further switching of data points between two clusters for two successive repeats. It will mark the termination of the algorithm if not explicitly mentioned.
+
+
+Advantages
+- Relatively simple to implement
+- Scales to large dataset
+- Guarantees convergence
+
+
+Disadvantages
+- Can handle only numeric data
+- Clustering outliers - centroids could be dragged or outliers could get own cluster
+
+Applications
+Opening Hospital Care Wards: (https://www.edureka.co/blog/k-means-clustering/)
+K-means Clustering will group these locations of maximum prone areas into clusters and define a cluster center for each cluster, which will be the locations where the Emergency Units will open. These Clusters centers are the centroids of each cluster and are at a minimum distance from all the points of a particular cluster, henceforth, the Emergency Units will be at minimum distance from all the accident prone areas within a cluster.
+
+Applications in Healthcare
+K-means clustering can be applied to many use cases in healthcare and help us to better characterize subpopulations and diseases by medical conditions. Some examples include:
+	•	Finding diabetic/non-diabetic group structure without an ICD-10 code present.
+	•	Identifying similar patients based on their attributes to explore costs, treatments, or outcomes.
+	•	Clustering treatment options within a cohort to make data-driven decisions.
+
+
+
