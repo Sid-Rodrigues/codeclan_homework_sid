@@ -1,0 +1,147 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidytext)
+library(dplyr)
+```
+
+
+Text Mining Homework
+1 MVP
+Using the dataset austen_books() from the package janeaustenr:
+
+a. Find the most common words in both Pride & Prejudice and Sense & Sensibility.
+
+```{r}
+library(janeaustenr)
+str(prideprejudice)
+```
+
+```{r}
+prideprejudice_df <- tibble(
+  text = prideprejudice,
+  sentence_no = 1:length(prideprejudice)
+) %>%
+  unnest_tokens(word, text)
+```
+
+```{r}
+prideprejudice_count <- prideprejudice_df %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+str(sensesensibility)
+```
+
+```{r}
+sensesensibility_df <- tibble(
+  text = sensesensibility,
+  sentence_no = 1:length(sensesensibility)
+) %>%
+  unnest_tokens(word, text)
+```
+
+```{r}
+sensesensibility_count <- sensesensibility_df %>%
+  count(word, sort = TRUE)
+```
+
+
+
+```{r}
+inner_join(prideprejudice_count, sensesensibility_count, by = "word")
+```
+
+
+b. Find the most common words in both Pride & Prejudice and Sense & Sensibility, not including stop words.
+
+```{r}
+prideprejudice_df %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+sensesensibility_df %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+inner_join(
+  prideprejudice_df %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE),
+  sensesensibility_df %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE),
+  by = "word"
+)
+```
+
+
+c. Find the most common sentiment words in both Pride & Prejudice and Sense & Sensibility.
+
+```{r}
+prideprejudice_sentiments <- prideprejudice_df %>%
+  anti_join(stop_words) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+sensesensibility_sentiments <- sensesensibility_df %>%
+  anti_join(stop_words) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+inner_join(prideprejudice_sentiments, sensesensibility_sentiments, by = "word")
+```
+
+2 Extension
+Taking your results above. Can you create a plot which visualises the differences between the books?
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+prideprejudice_df %>%
+  inner_join(get_sentiments("afinn")) %>%
+  group_by(sentence_no) %>%
+  summarise(avg_sentiment = mean(value)) %>%
+  ggplot() +
+  aes(x = sentence_no, y = avg_sentiment) +
+  geom_smooth()
+```
+
+
+
+
+```{r}
+sensesensibility_df %>%
+  inner_join(get_sentiments("afinn")) %>%
+  group_by(sentence_no) %>%
+  summarise(avg_sentiment = mean(value)) %>%
+  ggplot() +
+  aes(x = sentence_no, y = avg_sentiment) +
+  geom_smooth()
+```
+
+
+
+
+
+
+
+
+
+
+
+

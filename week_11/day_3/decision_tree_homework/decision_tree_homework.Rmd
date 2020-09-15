@@ -38,7 +38,7 @@ head(titanic_set)
 summary(titanic_set)
 ```
 ```{r}
-unique(titanic_set$pclass)
+unique(titanic_set$sib_sp)
 ```
 
 
@@ -60,6 +60,9 @@ head(titanic_clean)
   
 ```
 
+```{r}
+unique(titanic_clean$sib_sp)
+```
 
 
  Question 2
@@ -134,7 +137,7 @@ rpart.plot(titanic_fit, yesno = 2)
 The predicted result for a datapoint at the node (Survived or Died in this example) is on the top line.
 The second line contains probability of a died result expressed as a decimal. 
 
-So for example, if ogender is male, then they have a 0.64 chance of dying. If gender is female, they have a 0.74 chance of dying. T
+So for example, if ogender is male, then they have a 0.64 chance of dying. If gender is female, they have a 0.74 chance of dying. 
 
 Rules used to make the tree:
 
