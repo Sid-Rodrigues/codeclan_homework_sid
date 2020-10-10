@@ -65,7 +65,7 @@ raw_hist
 
 8. How do you read lines of text into a multi-element text vector?
 
-Answer: Using read_lines("file_name.txt")
+Answer: Using read_lines("file_name.txt") 
 
 
 9. Read in the JSON file from the following url: http://makemeanalyst.com/wp-content/uploads/2017/06/sample_json.txt
